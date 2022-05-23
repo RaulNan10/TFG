@@ -1,0 +1,21 @@
+    {% if error %}
+        <div>{{ error.messageKey|trans(error.messageData,'security') }}</div>
+    {% endif %}
+    <form class="formularioLogin" action="{{ path('app_login') }}" method="POST">
+        
+        <label for="username">Correo electrónico</label>
+        <input type="text" id="username" name="_username" value="{{ last_username}}"/><br><br>
+
+        <label for="password">Password</label>
+        <input type="password" id="password" name="_password"/><br><br>
+
+        <input type="hidden" name="app_main" value="/"/>
+
+        <button type="submit">Login</button>
+
+        <p>No tienes cuenta? <br>
+        <a class="botonenlace" href="/registro">Regístrate como usuario</a></p>
+        <a class="botonenlace" href="/registroOrganizacion">Regístrate como organización</a></p>
+        
+
+    </form>

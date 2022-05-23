@@ -1,0 +1,47 @@
+        <header>
+            {% if role=='no' %}
+
+            <a type="button" class="btn btn-primary" href="{{ path('app_login', {}) }}">Iniciar sesión</a>
+
+
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                data-bs-target="#exampleModal">Registrarse</button>
+
+            <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">VereVentos</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            ¿Qué tipo de registro quieres realizar?
+                        </div>
+                        <div class="modal-footer">
+                            <a type="button" class="btn btn-outline-primary"
+                                href="{{ path('app_registro', {}) }}">Registrar como usuario</a>
+                            <a type="button" class="btn btn-outline-primary"
+                                href="{{ path('app_registroOrganizacion', {}) }}">Registrar como organización</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% elseif role=='ROLE_ORG' %}
+            <a type="button" class="btn btn-outline-info" href="{{ path('app_perfilORG', {}) }}"><svg
+                    xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                    class="bi bi-person-fill" viewBox="0 0 16 16">
+                    <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H3zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
+                </svg>Mi perfil</a>
+            {% elseif role=='ROLE_USER' %}
+
+            <a type="button" class="btn btn-outline-info" href="{{ path('app_perfil', {}) }}"><svg
+                    xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                    class="bi bi-person-fill" viewBox="0 0 16 16">
+                    <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H3zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
+                </svg>Mi perfil</a>
+
+
+            {% endif %}
+
+        </header>
