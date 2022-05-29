@@ -1,5 +1,6 @@
 <?php namespace App\Controller;
 
+use App\Entity\Assessment;
 use App\Entity\Event;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -9,6 +10,7 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\User;
+use App\Form\AssessmentType;
 use App\Form\EventType;
 use App\Form\Register2Type;
 use App\Form\RegisterType;
@@ -107,7 +109,14 @@ class MainController extends AbstractController {
     /**
      * @Route("/",name="app_main")
      */
-    public function index() {
+    public function index(EntityManagerInterface $em) {
+
+        /*
+            BÚSQUEDA DE EVENTOS PARA MIOSTRARLOS EN EL INDEX
+        */
+
+        $todosLosEventos = $em->getRepository(Event::class)->findAll();
+        $seMostraran = array_rand($todosLosEventos,6);
 
         if($this->getUser()) {
 
@@ -117,6 +126,7 @@ class MainController extends AbstractController {
                     $tipoDeUsuario='ROLE_ORG';
                     return $this->render('main/index.html.twig', [ 'controller_name'=> 'MainController',
                         'role'=> $tipoDeUsuario,
+                        'eventos' => $todosLosEventos
                         ]);
                 }
 
@@ -124,16 +134,16 @@ class MainController extends AbstractController {
                     $tipoDeUsuario='ROLE_USER';
                     return $this->render('main/index.html.twig', [ 'controller_name'=> 'MainController',
                         'role'=> $tipoDeUsuario,
+                        'eventos' => $todosLosEventos
+
                         ]);
                 }
             }
-
-        }
-
-        else {
+        }else {
             $tipoDeUsuario='no';
             return $this->render('main/index.html.twig', [ 'controller_name'=> 'MainController',
                 'role'=> $tipoDeUsuario,
+                'eventos' => $todosLosEventos
                 ]);
         }
     }
@@ -304,36 +314,8 @@ class MainController extends AbstractController {
             }
         }
 
-        if($formularioEvento->isSubmitted()&& $formularioEvento->isValid()) {
-
-            $evento->setUser($user);
-            
-            $imagen = $form->get('image')->getData();
-            echo $imagen;
-            $extension = $imagen->guessExtension();
-            $nombreImagen = "event".time(). "." .$extension;
-            $imagen->move("imgs/user",$nombreImagen);
-            $evento->setImage($nombreImagen);
-
-            $evento->setTitle($formularioEvento->get('title')->getData());
-            $evento->setDescription($formularioEvento->get('description')->getData());
-            $evento->setDate($formularioEvento->get('date')->getData());
-
-
-/*
-            $imagen = $form->get('image')->getData();
-            $extension = $imagen->guessExtension();
-            $nombreImagen = "user".time(). "." .$extension;
-            $user->setImage($nombreImagen);
-            */ 
-
-            try {
-                $em->persist($evento);
-                $em->flush();
-            } catch(\Exception $e) {
-                
-            }
-        }
+        
+        
 
         return $this->render('perfil/perfilORG.html.twig', [ 'form'=> $form->createView(),
             'form2' => $formularioEvento->createView(),
@@ -344,26 +326,121 @@ class MainController extends AbstractController {
     }
 
     /**
-     * @Route("/crearEvento", name="app_crearEvento" )
+     * @Route("/crearEvento", name="app_crearEvento")
      */
     public function crearEvento(EntityManagerInterface $em, Request $request) {
 
-        $event = new Event();
-        $form = $this->createForm(EventType::class, $event);
+        /** @var \App\Entity\User $user */
+        $user=$this->getUser();
+
+        $evento = new Event();
+        $form = $this->createForm(EventType::class, $evento);
+        $form->handleRequest($request);
+        if($form->isSubmitted() && $form->isValid()) {
+
+            $evento->setUser($user);
+            
+            $imagen = $form->get('image')->getData();
+            
+            $extension = $imagen->guessExtension();
+            $nombreImagen = "event".time(). "." .$extension;
+            $imagen->move("imgs/event",$nombreImagen);
+            $evento->setImage($nombreImagen);
+
+            $evento->setTitle($form->get('title')->getData());
+            $evento->setDescription($form->get('description')->getData());
+            $evento->setDate($form->get('date')->getData());
+
+            try {
+                $em->persist($evento);
+                $em->flush();
+                
+           } catch(\Exception $e) {
+                echo $e->getMessage();
+            }
+
+        
+        }
+    return $this->render('crearEvento.html.twig', ['form'=>$form->createView()
+        ]);
+    }
+
+    /**
+     * @Route("/misEventos", name="app_misEventos")
+     */
+    /*EVENTOS PARA EL BOTÓN "MIS EVENTOS" DEL ROL ORG*/
+    public function verEventos(EntityManagerInterface $em, Request $request) {
+
+        $this->denyAccessUnlessGranted('ROLE_ORG');
+
+        /** @var \App\Entity\User $user */
+        $user=$this->getUser();
+
+        $arrayEventos = $em->getRepository(Event::class)->findBy(array('user'=>$user));
+        $arrayComentarios = $em->getRepository(Assessment::class)->findBy(array('user_id'=>$user));
+
+        return $this->render('misEventos.html.twig', ['eventos'=>$arrayEventos,
+        'comentarios'=>$arrayComentarios
+        ]);
+    
+    }
+
+    /**
+     * @Route("/eventos", name="app_eventos")
+     */
+    public function eventos(EntityManagerInterface $em) {
+
+        $arrayEventos = $em->getRepository(Event::class)->findAll();
+
+        $substr = '';
+        
+        foreach($arrayEventos as $evento) {
+            $substr =  substr($evento->getDescription(),0,130);
+            $evento->setDescription($substr.'...');
+        }
+
+        $arrayComentarios = $em->getRepository(Assessment::class)->findAll();
+        return $this->render('Eventos/verEventos.html.twig', ['eventos' => $arrayEventos, 'comentarios' => $arrayComentarios]);
+    }
+    /**
+     * @Route("visualizarEvento/{id}", name="app_visualizarEvento")
+     */
+    public function visualizarEvento(EntityManagerInterface $em,Request $request,$id) {
+        
+        /** @var \App\Entity\User $user */
+        $user=$this->getUser();
+
+        $comentarios = $em->getRepository(Assessment::class)->findBy(array('event'=>$id));
+        $evento = $em->getRepository(Event::class)->findBy(array('id' => $id));
+        
+        $comentarioNuevo = new Assessment();
+        $form = $this->createForm(AssessmentType::class, $comentarioNuevo);
+        $form->handleRequest($request);
 
         if($form->isSubmitted() && $form->isValid()) {
 
-            /** @var \App\Entity\User $user */
-            $user=$this->getUser();
+            $comentarioNuevo->setUser($user);
+            $comentarioNuevo->setDescription($form->get('description')->getData());
+            
+            // FOREACH RECORRIENDO EL REPOSITORIO $EVENTO PARA DEFINIR EL EVENTO AL QUE PERTENECE EL COMENTARIO
+            // EL REPOSITORIO SOLO CONTIENE UN ELEMENTO, YA QUE HA SIDO BUSCADO POR EL CAMPO ID, EL CUAL ES LA CLAVE PRIMARIA
+            foreach($evento as $comentarioEvento) {
+                $comentarioNuevo->setEvent($comentarioEvento);
+            }
 
-            /*$event->setUser($user)->getData();
-            $event->setImage($form->get('image'))*/
+            try {
 
+                $em->persist($comentarioNuevo);
+                $em->flush();
+                
+                return $this->render('Eventos/visualizarEvento.html.twig', ['comentarios' => $comentarios, 'eventos' => $evento, 'form' => $form->createView(), 'correcto' => 'si']);
+
+            }catch(\Exception $e) {
+                echo $e->getMessage();
+            }
         }
 
-        return $this->render('crearEvento.html.twig', ['form'=>$form->createView(),
-
-        ]);
+        return $this->render('Eventos/visualizarEvento.html.twig', ['comentarios' => $comentarios, 'eventos' => $evento, 'form' => $form->createView(),'correcto' => 'no']);
 
     }
 }

@@ -7,8 +7,6 @@
     integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous">
 </script>
 
-<script src="https://kit.fontawesome.com/yourcode.js" crossorigin="anonymous"></script>
-
 {% endblock %}
 
 <div class="dropdown">
@@ -31,8 +29,11 @@
 </div>
 
 
-  <button href="{{ path('app_crearEvento', {}) }}" class="btn btn-secondary" type="button" id="dropdownMenu3" data-bs-toggle="dropdown" aria-expanded="false">
+  <a href="{{ path('app_crearEvento') }}" class="btn btn-secondary" type="button">
     Crear evento
-  </button>
+  </a>
+  <a href="{{ path('app_misEventos') }}" class="btn btn-secondary" type="button">
+    Ver mis eventos
+  </a>
     
 
