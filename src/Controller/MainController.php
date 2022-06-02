@@ -30,6 +30,7 @@ class MainController extends AbstractController {
         return $this->render('login/login.html.twig', [ 'controller_name'=> 'MainController',
             'error'=> $error,
             'last_username'=> $lastUsername,
+            'role' => 'no'
             ]);
     }
 
@@ -43,8 +44,8 @@ class MainController extends AbstractController {
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $a=['ROLE_USER'];
-            $user->setRoles($a);
+            $roleForm=['ROLE_USER'];
+            $user->setRoles($roleForm);
 
             $hashedPasword=$passwordHasher->hashPassword($user,
             $form->get('password')->getData());
@@ -53,8 +54,17 @@ class MainController extends AbstractController {
             $imagen = $form->get('image')->getData();
             $extension = $imagen->guessExtension();
             $nombreImagen = "user".time(). "." .$extension;
+            $imagen->move("imgs/user",$nombreImagen);
             $user->setImage($nombreImagen);
 
+            /*
+                 $imagen = $form->get('image')->getData();  
+            $extension = $imagen->guessExtension();
+            $nombreImagen = "event".time(). "." .$extension;
+            $imagen->move("imgs/event",$nombreImagen);
+            $evento->setImage($nombreImagen);
+
+            */ 
             try {
                 $em->persist($user);
                 $em->flush();
@@ -64,7 +74,7 @@ class MainController extends AbstractController {
             catch(\Exception $e) {
                 return new Response('Esto ha petao');
             }
-            $imagen->move("imgs/user",$nombreImagen);
+            
 
             return $this->redirectToRoute('app_login');
         }
@@ -90,13 +100,15 @@ class MainController extends AbstractController {
             $user->setPassword($hashedPasword);
 
             try {
+                
                 $em->persist($user);
                 $em->flush();
 
             }
 
             catch(\Exception $e) {
-                return new Response('Esto ha petao');
+                return $this->render('registro/registroOrganizacion.html.twig', [ 'controller_name'=> 'LoginController',
+            'form'=> $form->createView()]);
             }
 
             return $this->redirectToRoute('app_login');
@@ -109,14 +121,7 @@ class MainController extends AbstractController {
     /**
      * @Route("/",name="app_main")
      */
-    public function index(EntityManagerInterface $em) {
-
-        /*
-            BÚSQUEDA DE EVENTOS PARA MIOSTRARLOS EN EL INDEX
-        */
-
-        $todosLosEventos = $em->getRepository(Event::class)->findAll();
-        $seMostraran = array_rand($todosLosEventos,6);
+    public function index() {
 
         if($this->getUser()) {
 
@@ -124,31 +129,29 @@ class MainController extends AbstractController {
 
                 if($rol=='ROLE_ORG') {
                     $tipoDeUsuario='ROLE_ORG';
-                    return $this->render('main/index.html.twig', [ 'controller_name'=> 'MainController',
-                        'role'=> $tipoDeUsuario,
-                        'eventos' => $todosLosEventos
+                    return $this->render('inicio.html.twig', [ 'controller_name'=> 'MainController',
+                        'role'=> $tipoDeUsuario
                         ]);
                 }
 
                 else if($rol=='ROLE_USER') {
                     $tipoDeUsuario='ROLE_USER';
-                    return $this->render('main/index.html.twig', [ 'controller_name'=> 'MainController',
-                        'role'=> $tipoDeUsuario,
-                        'eventos' => $todosLosEventos
+                    return $this->render('inicio.html.twig', [ 'controller_name'=> 'MainController',
+                        'role'=> $tipoDeUsuario
 
                         ]);
                 }
             }
+    
         }else {
             $tipoDeUsuario='no';
-            return $this->render('main/index.html.twig', [ 'controller_name'=> 'MainController',
-                'role'=> $tipoDeUsuario,
-                'eventos' => $todosLosEventos
+            return $this->render('inicio.html.twig', [ 'controller_name'=> 'MainController',
+                'role'=> $tipoDeUsuario
                 ]);
         }
     }
 
-    /**
+        /**
         * @Route("/logout",name="app_logout")
         */
     public function loguot() {
@@ -165,12 +168,20 @@ class MainController extends AbstractController {
         $this->denyAccessUnlessGranted('ROLE_USER');
         /** @var \App\Entity\User $user */
         $user=$this->getUser();
-        $img=$user->getImage();
-        echo $img;
-        $form=$this->createForm(UserType::class, $user);
-        $form->handleRequest($request);
+        return $this->render('perfil/perfil.html.twig', [ 
+            'mensaje'=> null,
+            'color' => null,
+            'role' => 'ROLE_USER',
+            'user' => $user
+        ]);
+        
+       /* $img=$user->getImage();
+        $form=$this->createForm(UserInfoType::class, $user);
+        $form->handleRequest($request); */
 
-        if($form->isSubmitted() && $form->isValid()) {
+    
+
+       /* if($form->isSubmitted() && $form->isValid()) {
 
             $emailForm=$form->get('email')->getData();
 
@@ -180,7 +191,12 @@ class MainController extends AbstractController {
 
             else {
                 $existe=$em->getRepository(User::class)->findOneBy(array('email'=> $emailForm));
-            }
+            }return $this->render('perfil/perfil.html.twig', [ 'form'=> $form->createView(),
+            'imageBase64'=> $img,
+            'mensaje'=> null,
+            'color' => null,
+            'role' => 'ROLE_USER'
+        ]);
 
 
             if(is_null($existe)) {
@@ -193,28 +209,31 @@ class MainController extends AbstractController {
                     return $this->render('perfil/perfil.html.twig', [ 'form'=> $form->createView(),
                     'imageBase64'=> $img,
                     'mensaje'=> 'Datos modificados correctamente',
-                    'color' => 'verde'
+                    'color' => 'verde',
+                    'role' => 'ROLE_USER'
                 ]);
                 }
 
                 catch(\Exception $e) {
                     if($e->getCode()==1062) {
                         /** @var \App\Entity\User $user */
-                        $user=$this->getUser();
+            /*            $user=$this->getUser();
                         $img=$user->getImage();
                         $form=$this->createForm(UserType::class, $user);
 
                         return $this->render('perfil/perfil.html.twig', [ 'form'=> $form->createView(),
                             'imageBase64'=> $img,
                             'mensaje'=> 'Ya existe un usuario con ese correo electrónico',
-                            'color' => null
+                            'color' => null,
+                            'role' => 'ROLE_USER'
                             ]);
                     }
 
                     return $this->render('perfil/perfil.html.twig', [ 'form'=> $form->createView(),
                         'imageBase64'=> $img,
                         'mensaje'=> $e->getMessage()."----codigo: ".$e->getCode(),
-                        'color' => null
+                        'color' => null,
+                        'role' => 'ROLE_USER'
                     ]);
                 }
             }
@@ -224,17 +243,60 @@ class MainController extends AbstractController {
                 return $this->render('perfil/perfil.html.twig', [ 'form'=> $form->createView(),
                     'imageBase64'=> $img,
                     'mensaje'=> $mensaje,
-                    'color' => null
+                    'color' => null,
+                    'role' => 'ROLE_USER'
                 ]);
             }
+        } 
+    */
+   
+    }
+    
+    /**
+     * @Route("/deleteUser/{user}", name="app_deleteUser")
+     */
+    public function delteUser(int $user,EntityManagerInterface $em,AuthenticationUtils $authenticationUtils) {   
+        $usuarioObj = $em->getRepository(User::class)->findBy(array('id'=>$user));
+        
+        $susComentarios = $em->getRepository(Assessment::class)->findBy(array('user'=>$usuarioObj));
+
+        //ELIMINA TODOS LOS COMENTARIOS DEL USUARIO
+        foreach($susComentarios as $comentario) {
+                try {
+
+                    $em->remove($comentario);
+                    $em->flush();
+
+                }catch(\Exception $e) {
+                    echo $e->getMessage();
+                }
+        }
+        //ELIMINA LA CUENTA
+        try {
+            foreach($usuarioObj as $usuario) {
+                $em->remove($usuario);
+                $em->flush();
+
+                return $this->redirectToRoute("app_login");
+            }
+            
+
+        }catch(\Exception $e) {
+            echo $e->getMessage();
         }
 
-        return $this->render('perfil/perfil.html.twig', [ 'form'=> $form->createView(),
-            'imageBase64'=> $img,
-            'mensaje'=> null,
-            'color' => null
-        ]);
+        $error=$authenticationUtils->getLastAuthenticationError();
+        $lastUsername=$authenticationUtils->getLastUsername();
+
+
+        return $this->render('login/login.html.twig', [ 'controller_name'=> 'MainController',
+            'error'=> $error,
+            'last_username'=> $lastUsername,
+            'role' => 'no'
+            ]);
+
     }
+
     /**
      * @Route("/perfilOrg", name="app_perfilORG")
      */
@@ -250,8 +312,16 @@ class MainController extends AbstractController {
 
         $evento = new Event();
         $formularioEvento = $this->createForm(EventType::class, $evento);
-        $formularioEvento->handleRequest($request);
+        $formularioEvento->handleRequest($request);        
+        
 
+        return $this->render('perfil/perfilORG.html.twig', [ 'form'=> $form->createView(),
+            'form2' => $formularioEvento->createView(),
+            'user'=> $user,
+            
+            'role' => 'ROLE_ORG'
+        ]);
+/*
         if($form->isSubmitted() && $form->isValid()) {
 
             $emailForm=$form->get('email')->getData();
@@ -282,7 +352,7 @@ class MainController extends AbstractController {
                 catch(\Exception $e) {
                     if($e->getCode()==1062) {
                         /** @var \App\Entity\User $user */
-                        $user=$this->getUser();
+ /*                       $user=$this->getUser();
                         $img=$user->getImage();
                         $form=$this->createForm(UserType::class, $user);
 
@@ -313,16 +383,8 @@ class MainController extends AbstractController {
                 ]);
             }
         }
+*/
 
-        
-        
-
-        return $this->render('perfil/perfilORG.html.twig', [ 'form'=> $form->createView(),
-            'form2' => $formularioEvento->createView(),
-            'imageBase64'=> $img,
-            'mensaje'=> null,
-            'color' => null
-        ]);
     }
 
     /**
@@ -332,7 +394,7 @@ class MainController extends AbstractController {
 
         /** @var \App\Entity\User $user */
         $user=$this->getUser();
-
+        //echo phpinfo();
         $evento = new Event();
         $form = $this->createForm(EventType::class, $evento);
         $form->handleRequest($request);
@@ -340,8 +402,7 @@ class MainController extends AbstractController {
 
             $evento->setUser($user);
             
-            $imagen = $form->get('image')->getData();
-            
+            $imagen = $form->get('image')->getData();  
             $extension = $imagen->guessExtension();
             $nombreImagen = "event".time(). "." .$extension;
             $imagen->move("imgs/event",$nombreImagen);
@@ -361,7 +422,7 @@ class MainController extends AbstractController {
 
         
         }
-    return $this->render('crearEvento.html.twig', ['form'=>$form->createView()
+    return $this->render('crearEvento.html.twig', ['form'=>$form->createView(), 'role' => 'ROLE_ORG'
         ]);
     }
 
@@ -377,10 +438,10 @@ class MainController extends AbstractController {
         $user=$this->getUser();
 
         $arrayEventos = $em->getRepository(Event::class)->findBy(array('user'=>$user));
-        $arrayComentarios = $em->getRepository(Assessment::class)->findBy(array('user_id'=>$user));
+        $arrayComentarios = $em->getRepository(Assessment::class)->findAll();
 
         return $this->render('misEventos.html.twig', ['eventos'=>$arrayEventos,
-        'comentarios'=>$arrayComentarios
+        'comentarios'=>$arrayComentarios, 'role' => 'ROLE_ORG'
         ]);
     
     }
@@ -389,23 +450,56 @@ class MainController extends AbstractController {
      * @Route("/eventos", name="app_eventos")
      */
     public function eventos(EntityManagerInterface $em) {
-
+        
         $arrayEventos = $em->getRepository(Event::class)->findAll();
 
         $substr = '';
-        
+
+        /** @var \App\Entity\User $user */
+        $user=$this->getUser();
+        $arrayComentarios = $em->getRepository(Assessment::class)->findAll();
+
         foreach($arrayEventos as $evento) {
             $substr =  substr($evento->getDescription(),0,130);
             $evento->setDescription($substr.'...');
         }
 
-        $arrayComentarios = $em->getRepository(Assessment::class)->findAll();
-        return $this->render('Eventos/verEventos.html.twig', ['eventos' => $arrayEventos, 'comentarios' => $arrayComentarios]);
+         
+        $tipoDeUsuario = '';
+        
+        if($user) {
+
+            foreach($user->getRoles() as $rol) {
+               
+
+                if($rol=='ROLE_ORG') {
+                    $tipoDeUsuario='ROLE_ORG';
+                    return $this->render('Eventos/verEventos.html.twig', ['eventos' => $arrayEventos, 'comentarios' => $arrayComentarios, 'role' => $tipoDeUsuario]);
+
+                    
+                }
+
+                else if($rol==='ROLE_USER') {
+                    $tipoDeUsuario='ROLE_USER';
+                    return $this->render('Eventos/verEventos.html.twig', ['eventos' => $arrayEventos, 'comentarios' => $arrayComentarios, 'role' => $tipoDeUsuario]);
+
+                }
+                echo "$tipoDeUsuario<br>";
+            }
+
+        }else {
+            $tipoDeUsuario='no';
+            
+        }
+
+        return $this->render('Eventos/verEventos.html.twig', ['eventos' => $arrayEventos, 'comentarios' => $arrayComentarios, 'role' => $tipoDeUsuario]);
     }
     /**
      * @Route("visualizarEvento/{id}", name="app_visualizarEvento")
      */
     public function visualizarEvento(EntityManagerInterface $em,Request $request,$id) {
+        
+        $this->denyAccessUnlessGranted("ROLE_USER");
         
         /** @var \App\Entity\User $user */
         $user=$this->getUser();
@@ -432,15 +526,134 @@ class MainController extends AbstractController {
 
                 $em->persist($comentarioNuevo);
                 $em->flush();
+                $comentarios = $em->getRepository(Assessment::class)->findBy(array('event'=>$id));
+
+                if($user) {
+
+                    foreach($user->getRoles() as $rol) {
+                       
+        
+                        if($rol=='ROLE_ORG') {
+                            $tipoDeUsuario='ROLE_ORG';
+                            return $this->render('Eventos/visualizarEvento.html.twig', ['comentarios' => $comentarios, 'eventos' => $evento, 'form' => $form->createView(), 'role' => $tipoDeUsuario]);
+        
+                            
+                        }
+        
+                        else if($rol==='ROLE_USER') {
+                            $tipoDeUsuario='ROLE_USER';
+                            return $this->render('Eventos/visualizarEvento.html.twig', ['comentarios' => $comentarios, 'eventos' => $evento, 'form' => $form->createView(), 'role' => $tipoDeUsuario]);
+        
+                        }
+                       
+                    }
+        
+                }else {
+                    $tipoDeUsuario='no';
+                    return $this->render('Eventos/visualizarEvento.html.twig', ['comentarios' => $comentarios, 'eventos' => $evento, 'form' => $form->createView(), 'role' => $tipoDeUsuario]);
+                }
+
                 
-                return $this->render('Eventos/visualizarEvento.html.twig', ['comentarios' => $comentarios, 'eventos' => $evento, 'form' => $form->createView(), 'correcto' => 'si']);
 
             }catch(\Exception $e) {
                 echo $e->getMessage();
             }
         }
 
-        return $this->render('Eventos/visualizarEvento.html.twig', ['comentarios' => $comentarios, 'eventos' => $evento, 'form' => $form->createView(),'correcto' => 'no']);
+        if($user) {
 
+            foreach($user->getRoles() as $rol) {
+               
+
+                if($rol=='ROLE_ORG') {
+                    $tipoDeUsuario='ROLE_ORG';
+                    return $this->render('Eventos/visualizarEvento.html.twig', ['comentarios' => $comentarios, 'eventos' => $evento, 'form' => $form->createView(), 'role' => $tipoDeUsuario]);
+
+                    
+                }
+
+                else if($rol==='ROLE_USER') {
+                    $tipoDeUsuario='ROLE_USER';
+                    return $this->render('Eventos/visualizarEvento.html.twig', ['comentarios' => $comentarios, 'eventos' => $evento, 'form' => $form->createView(), 'role' => $tipoDeUsuario]);
+
+                }
+               
+            }
+
+        }else {
+            $tipoDeUsuario='no';
+            return $this->render('Eventos/visualizarEvento.html.twig', ['comentarios' => $comentarios, 'eventos' => $evento, 'form' => $form->createView(), 'role' => $tipoDeUsuario]);
+        }
+
+        
+
+    }
+
+    /**
+     * @Route("/organizaciones/{id_org}", name="app_organizaciones")
+     */
+    public function organizaciones(EntityManagerInterface $em, String $id_org) {
+
+        $tipoDeUsuario = '';
+        if($this->getUser()) {
+
+            foreach($this->getUser()->getRoles() as $rol) {
+
+                if($rol=='ROLE_ORG') {
+                    $tipoDeUsuario='ROLE_ORG';
+                    
+                    if($id_org == 0) {
+            
+                        $arrayOrganizaciones = $em->getRepository(User::class)->findByRole('ORG');
+                        $arrayEventos = $em->getRepository(Event::class)->findAll();
+                        
+                        return $this->render('organizaciones.html.twig', ['role'=>$tipoDeUsuario, 'arrayOrgs'=>$arrayOrganizaciones, 'arrayEventos'=>$arrayEventos, 'titulo'=>'Listado de las organizaciones']);
+            
+                    } else {
+                        
+                        $arrayEventos = $em->getRepository(Event::class)->findBy(array('user'=>$id_org));
+                        $arrayComentarios = $em->getRepository(Assessment::class)->findAll();
+                        return $this->render('organizaciones.html.twig', ['role'=>$tipoDeUsuario, 'eventos', 'arrayEventos'=>$arrayEventos, 'arrayOrgs'=>'', 'comentarios' => $arrayComentarios, 'titulo' => 'Listado de eventos']);
+                    }
+                    
+                }
+
+                else if($rol=='ROLE_USER') {
+                    $tipoDeUsuario='ROLE_USER';
+                    if($id_org == 0) {
+            
+                        $arrayOrganizaciones = $em->getRepository(User::class)->findByRole('ORG');
+                        $arrayEventos = $em->getRepository(Event::class)->findAll();
+                        
+                        return $this->render('organizaciones.html.twig', ['role'=>$tipoDeUsuario, 'arrayOrgs'=>$arrayOrganizaciones, 'arrayEventos'=>$arrayEventos, 'titulo'=>'Listado de las organizaciones']);
+            
+                    } else {
+                        
+                        $arrayEventos = $em->getRepository(Event::class)->findBy(array('user'=>$id_org));
+                        $arrayComentarios = $em->getRepository(Assessment::class)->findAll();
+                        return $this->render('organizaciones.html.twig', ['role'=>$tipoDeUsuario, 'eventos', 'arrayEventos'=>$arrayEventos, 'arrayOrgs'=>'', 'comentarios' => $arrayComentarios, 'titulo' => 'Listado de eventos']);
+                    }
+                    
+                }
+            }
+        }else {
+            $tipoDeUsuario='no';
+            if($id_org == 0) {
+            
+                $arrayOrganizaciones = $em->getRepository(User::class)->findByRole('ORG');
+                $arrayEventos = $em->getRepository(Event::class)->findAll();
+                
+                return $this->render('organizaciones.html.twig', ['role'=>$tipoDeUsuario, 'arrayOrgs'=>$arrayOrganizaciones, 'arrayEventos'=>$arrayEventos, 'titulo'=>'Listado de las organizaciones']);
+    
+            } else {
+                
+                $arrayEventos = $em->getRepository(Event::class)->findBy(array('user'=>$id_org));
+                $arrayComentarios = $em->getRepository(Assessment::class)->findAll();
+                return $this->render('organizaciones.html.twig', ['role'=>$tipoDeUsuario, 'eventos', 'arrayEventos'=>$arrayEventos, 'arrayOrgs'=>'', 'comentarios' => $arrayComentarios, 'titulo' => 'Listado de eventos']);
+            }
+            
+        }
+        
+        
     }
 }

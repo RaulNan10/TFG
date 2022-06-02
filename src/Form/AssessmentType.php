@@ -15,8 +15,8 @@ class AssessmentType extends AbstractType
     {
         $builder
             
-            ->add('description',TextareaType::class, [])
-            ->add('save', SubmitType::class, array('label' => 'Aceptar'));
+            ->add('description',TextareaType::class, ['label'=>' ','label_attr' => ['class' => 'fs-1']])
+            ->add('save', SubmitType::class, array('label' => 'Aceptar', 'attr'=>['class' => 'btn btn-primary mt-2' ]));
 ;
     }
 

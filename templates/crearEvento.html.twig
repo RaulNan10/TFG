@@ -1,5 +1,11 @@
-    
+<link href="{{ asset('css/comun.css') }}" rel="stylesheet" type="text/css" />
+
+    {{ include ('header.html.twig', {}) }}
+<div class="container general mt-5">
+    <div class="justify-content-center d-flex bg-light">
     {{form_start(form)}}
     {{form_widget(form) }}
     {{form_end(form)}}
-    
+    </div>
+</div>
+{{ include ('footer.html.twig', {}) }}

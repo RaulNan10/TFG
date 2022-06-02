@@ -30,14 +30,10 @@ class Event
     private $title;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
+     * @ORM\Column(type="string", length=1000, nullable=true)
      */
     private $description;
 
-    /**
-     * @ORM\Column(type="datetime", nullable=true)
-     */
-    private $date;
 
     /**
      * @ORM\ManyToOne(targetEntity=User::class, inversedBy="events")
@@ -48,6 +44,11 @@ class Event
      * @ORM\OneToMany(targetEntity=Assessment::class, mappedBy="event")
      */
     private $assessments;
+
+    /**
+     * @ORM\Column(type="date", nullable=true)
+     */
+    private $Date;
 
     public function __construct()
     {
@@ -95,18 +96,6 @@ class Event
         return $this;
     }
 
-    public function getDate(): ?\DateTimeInterface
-    {
-        return $this->date;
-    }
-
-    public function setDate(?\DateTimeInterface $date): self
-    {
-        $this->date = $date;
-
-        return $this;
-    }
-
     public function getUser(): ?User
     {
         return $this->user;
@@ -145,6 +134,18 @@ class Event
                 $assessment->setEvent(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getDate(): ?\DateTimeInterface
+    {
+        return $this->Date;
+    }
+
+    public function setDate(?\DateTimeInterface $Date): self
+    {
+        $this->Date = $Date;
 
         return $this;
     }

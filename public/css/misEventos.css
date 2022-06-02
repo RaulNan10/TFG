@@ -1,0 +1,4 @@
+img:hover {
+    filter: blur(3px);
+    transition: .6s;
+}

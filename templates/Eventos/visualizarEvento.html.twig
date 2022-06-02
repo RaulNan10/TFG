@@ -6,21 +6,30 @@
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"
         integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous">
     </script>
+    <link href="{{ asset('css/visualizarEvento.css') }}" rel="stylesheet" type="text/css" />
+ {{ include ('header.html.twig', {}) }}
+    <div class="container mt-5">
 
-    <div class="container">
-        
         {% if eventos %}
+        <div class="d-flex justify-content-center">
         {% for evento in eventos %}
-        <div class="card border border-dark" style="width: 25rem;">
-            <img src="/imgs/event/{{evento.image}}" class="card-img-top" alt="...">
+        <div class="card border border-dark" style="width: 50%;">
+            <div id="contenedor">
+                <img src="/imgs/event/{{evento.image}}" class="card-img-top" alt="...">
+            </div>
             <div class="card-body">
                 <p class="card-title fw-bold fs-2 text-uppercase">{{evento.title}}</p>
+                <h5 class="card-subtitle mb-2 text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                        fill="currentColor" class="bi bi-calendar" viewBox="0 0 16 16">
+                        <path
+                            d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z" />
+                    </svg>   {{ evento.date|date('d-m-Y')}}</h5>
                 <hr class="border border-primary mt-0">
                 <p class="card-text lh-lg fs-5 mt-0">{{evento.description}}</p>
             </div>
             <div class="card-footer border border-top">
                 <p class="fs-4 text">Valoraciones
-                    <svg type="button" data-bs-toggle="modal" data-bs-target="#exampleModal"
+                    <svg type="button" data-bs-toggle="modal" class="text-primary" data-bs-target="#exampleModal"
                         xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                         class="bi bi-plus-circle" viewBox="0 0 16 16">
                         <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
@@ -29,25 +38,28 @@
                     </svg></p>
 
             </div>
-        {% if comentarios %}
+            {% if comentarios %}
             <ul class="list-group list-group-flush">
-        {% for comentario in comentarios %}
-                <li class="list-group-item"><span class="text-muted"><img class="rounded-circle" height="20" width="20" src="/imgs/user/{{comentario.user.image}}"/>{{comentario.user.name}}.</span>  {{comentario.description}}</li>
-                
-            
-        {% endfor %}
+                {% for comentario in comentarios %}
+                <li class="list-group-item"><span class="text-muted"><img class="rounded-circle" height="20" width="20"
+                            src="/imgs/user/{{comentario.user.image}}" /> {{comentario.user.name}}.</span>
+                    {{comentario.description}}</li>
+
+
+                {% endfor %}
             </ul>
             <div class="card-body bg-light">
-                <p class="text-primary" style="--bs-text-opacity: .5;">Evento organizado por <span class="text-uppercase fw-bold text-primary">{{evento.user.name}}</span></p>
+                <p class="text-primary" style="--bs-text-opacity: .5;">Evento organizado por <span
+                        class="text-uppercase fw-bold text-primary">{{evento.user.name}}</span></p>
             </div>
-        {% endif %}
-            
+            {% endif %}
+
         </div>
         {# MODAL #}
         <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
-                    <div class="modal-header">
+                    <div class="modal-header text-center">
                         <h5 class="modal-title" id="exampleModalLabel">Tu comentario</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
@@ -55,7 +67,7 @@
                         {{ form_start(form) }} {{ form_widget(form) }} {{ form_end(form) }}
                     </div>
                     <div class="modal-footer">
-                        
+
                     </div>
                 </div>
             </div>
@@ -63,10 +75,8 @@
         {# MODAL #}
 
         {% endfor %}
-        {% endif %}
-        {% if correcto == 'si' %}
-        <div class="alert alert-success mt-3" role="alert">
-            Tu comentario ha sido realizado satisfactoriamente— verEventos
         </div>
         {% endif %}
+        
     </div>
+     {{ include ('footer.html.twig', {}) }}
