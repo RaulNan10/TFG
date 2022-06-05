@@ -7,6 +7,8 @@
         integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous">
     </script>
     <link href="{{ asset('css/visualizarEvento.css') }}" rel="stylesheet" type="text/css" />
+    <link href="{{ asset('css/comun.css') }}" rel="stylesheet" type="text/css" />
+
  {{ include ('header.html.twig', {}) }}
     <div class="container mt-5">
 
@@ -29,7 +31,7 @@
             </div>
             <div class="card-footer border border-top">
                 <p class="fs-4 text">Valoraciones
-                    <svg type="button" data-bs-toggle="modal" class="text-primary" data-bs-target="#exampleModal"
+                    <svg type="button" data-bs-toggle="modal" class="text-primary" data-bs-target="#exampleModal2"
                         xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                         class="bi bi-plus-circle" viewBox="0 0 16 16">
                         <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
@@ -56,7 +58,7 @@
 
         </div>
         {# MODAL #}
-        <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal fade" id="exampleModal2" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header text-center">

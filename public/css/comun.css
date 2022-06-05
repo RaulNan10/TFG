@@ -1,3 +1,18 @@
 .general {
     height: 60vh !important;
+    min-width: 500px;
+}
+
+.container {
+    min-width: 500px;
+}
+footer {
+    min-width: 500px;
+}
+header {
+    min-width: 500px;
+}
+.containerFooter {
+    min-width: 500px;
+
 }

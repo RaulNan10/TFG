@@ -44,6 +44,8 @@ class MainController extends AbstractController {
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $imagen = $form->get('image')->getData();
+             
             $roleForm=['ROLE_USER'];
             $user->setRoles($roleForm);
 
@@ -53,18 +55,15 @@ class MainController extends AbstractController {
 
             $imagen = $form->get('image')->getData();
             $extension = $imagen->guessExtension();
+            if($extension != 'jpg' && $extension != 'png' && $extension != 'jpeg') {
+                return $this->render('registro/registro.html.twig', [ 'controller_name'=> 'LoginController',
+                'form'=> $form->createView(),'role'=>'no', 'mensaje' => 'Introduce una imagen con un formato correcto (jpeg,png,jpg)' ]);
+            }
+
             $nombreImagen = "user".time(). "." .$extension;
             $imagen->move("imgs/user",$nombreImagen);
             $user->setImage($nombreImagen);
 
-            /*
-                 $imagen = $form->get('image')->getData();  
-            $extension = $imagen->guessExtension();
-            $nombreImagen = "event".time(). "." .$extension;
-            $imagen->move("imgs/event",$nombreImagen);
-            $evento->setImage($nombreImagen);
-
-            */ 
             try {
                 $em->persist($user);
                 $em->flush();
@@ -80,7 +79,7 @@ class MainController extends AbstractController {
         }
 
         return $this->render('registro/registro.html.twig', [ 'controller_name'=> 'LoginController',
-            'form'=> $form->createView()]);
+            'form'=> $form->createView(),'role'=>'no', 'mensaje' => '' ]);
     }
 
     /**
@@ -108,14 +107,14 @@ class MainController extends AbstractController {
 
             catch(\Exception $e) {
                 return $this->render('registro/registroOrganizacion.html.twig', [ 'controller_name'=> 'LoginController',
-            'form'=> $form->createView()]);
+            'form'=> $form->createView(), 'role'=>'no']);
             }
 
             return $this->redirectToRoute('app_login');
         }
 
         return $this->render('registro/registroOrganizacion.html.twig', [ 'controller_name'=> 'LoginController',
-            'form'=> $form->createView()]);
+            'form'=> $form->createView(), 'role'=>'no']);
     }
 
     /**
@@ -156,7 +155,7 @@ class MainController extends AbstractController {
         */
     public function loguot() {
         $tipoDeUsuario='no';
-        return $this->render('main/index.html.twig', [ 'role'=> $tipoDeUsuario,
+        return $this->render('main/.html.twig', [ 'role'=> $tipoDeUsuario,
             ]);
     }
 
@@ -391,7 +390,8 @@ class MainController extends AbstractController {
      * @Route("/crearEvento", name="app_crearEvento")
      */
     public function crearEvento(EntityManagerInterface $em, Request $request) {
-
+        $this->denyAccessUnlessGranted('ROLE_ORG');
+        
         /** @var \App\Entity\User $user */
         $user=$this->getUser();
         //echo phpinfo();
@@ -404,6 +404,10 @@ class MainController extends AbstractController {
             
             $imagen = $form->get('image')->getData();  
             $extension = $imagen->guessExtension();
+            if($extension != 'jpg' && $extension != 'png' && $extension != 'jpeg') {
+                return $this->render('crearEvento.html.twig', ['form'=>$form->createView(), 'role' => 'ROLE_ORG', 'mensaje' => '', 'mensajeImagen' => 'Introduce una imagen con un formato correcto (jpeg,png,jpg)' 
+                ]);
+            }
             $nombreImagen = "event".time(). "." .$extension;
             $imagen->move("imgs/event",$nombreImagen);
             $evento->setImage($nombreImagen);
@@ -412,7 +416,14 @@ class MainController extends AbstractController {
             $evento->setDescription($form->get('description')->getData());
             $evento->setDate($form->get('date')->getData());
 
+            $fechaActual = new \DateTime();
+            $fechaEvento = $form->get('date')->getData();
+            if($fechaEvento < $fechaActual) {
+                return $this->render('crearEvento.html.twig', ['form'=>$form->createView(), 'role' => 'ROLE_ORG', 'mensaje' => 'Introduce una fecha mayor a la actual', 'mensajeImagen'=> ''
+                ]);
+            }
             try {
+
                 $em->persist($evento);
                 $em->flush();
                 
@@ -422,7 +433,7 @@ class MainController extends AbstractController {
 
         
         }
-    return $this->render('crearEvento.html.twig', ['form'=>$form->createView(), 'role' => 'ROLE_ORG'
+    return $this->render('crearEvento.html.twig', ['form'=>$form->createView(), 'role' => 'ROLE_ORG', 'mensaje' => '', 'mensajeImagen'=> ''
         ]);
     }
 

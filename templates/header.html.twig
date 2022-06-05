@@ -6,6 +6,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"
       integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous">
     </script>
+    <link href="{{ asset('css/comun.css') }}" rel="stylesheet" type="text/css" />
 
     <header class="p-3 bg-dark text-white">
       <div class="container">
@@ -16,19 +17,21 @@
           </a>
 
           <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
-            
-            <li><a  href="{{ path('app_main', {}) }}" class="nav-link px-2 text-secondary">Inicio</a></li>
-            <li><a href="{{ path('app_eventos', {}) }}" class="nav-link px-2 text-white">Eventos</a></li>
-            <li><a href="{{ path('app_organizaciones', {id_org:0,titulo:'Listado de las organizaciones'}) }}" class="nav-link px-2 text-white">Organizaciones</a></li>
+
+            <li><a href="{{ path('app_main', {}) }}" class="nav-link px-2 fw-bold text-white">Inicio</a></li>
+            <li><a href="{{ path('app_eventos', {}) }}" class="nav-link px-2 fw-bold text-white">Eventos</a></li>
+            <li><a href="{{ path('app_organizaciones', {id_org:0,titulo:'Listado de las organizaciones'}) }}"
+                class="nav-link px-2 fw-bold text-white">Organizaciones</a></li>
 
           </ul>
 
-          
+
 
           <div class="text-end">
             {% if role == 'no' %}
             <a type="button" class="btn btn-outline-light me-2" href="{{ path('app_login', {}) }}">Iniciar sesión</a>
-            <a type="button" class="btn btn-warning">Registrarse</a>
+            <a type="button" class="btn btn-warning" data-bs-toggle="modal"
+              data-bs-target="#exampleModal">Registrarse</a>
 
             {% elseif role == 'ROLE_USER' %}
             <a type="button" class="btn btn-outline-light me-2" href="{{ path('app_perfil', {}) }}">
@@ -68,7 +71,24 @@
             </a>
             {% endif %}
 
+            <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel"
+              aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title text-dark" id="exampleModalLabel">¿Qué tipo de registro deseas realizar?</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                    <a class="btn btn-secondary" href="{{ path('app_registroOrganizacion', {}) }}">Registrarse como organización</a>
+                    <a class="btn btn-primary" href="{{ path('app_registro', {}) }}">Registrarse como usuario</a>
+                  </div>
 
+
+
+                </div>
+              </div>
+            </div>
 
           </div>
         </div>
